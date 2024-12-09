@@ -1,0 +1,14 @@
+What is needed:
+
+•	Must import and use two modules at minimum - add one
+•	Must handle errors - i.e wrong type, input is incorrect. Basically, I should not be able to crash your program simply by 
+  using the program as it was designed - add better exception handling 
+•	Must be unique code - You research how to do something, but the code must be your team's code. No Copying directly from 
+  the research - dumb the code down
+•	Optional for extra credit, declare a class and create objects with attributes and methods used in the code. - if needed
+
+Next Steps:
+Design code
+Test code
+add comments and note errors 
+correct for errors
