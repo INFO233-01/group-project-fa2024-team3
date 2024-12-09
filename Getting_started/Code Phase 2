@@ -1,1 +1,98 @@
+import requests
+
+# Predefined list of valid food terms
+VALID_FOOD_TERMS = ["chicken", "beef", "fish", "ribeye", "steak", "pasta", "rice", "apple", "banana", "bread", "milk", "egg", "potato", "salmon", "vegetables", "soup"]
+
+# Function to validate user input
+def is_valid_food(term):
+    return term.lower() in VALID_FOOD_TERMS
+
+# Function to restart the input process for food
+def get_food_input():
+    while True:
+        food_item = input("Enter the type of dish you would like (e.g., chicken, pasta, soup): ")
+        if is_valid_food(food_item):
+            return food_item
+        else:
+            print("Invalid input! Please enter a valid food-related term.")
+
+# Function to get a valid calorie goal
+def get_calorie_goal(food_item):
+    while True:
+        try:
+            calorie_goal = int(input(f"Enter your calorie goal for the dish '{food_item}': "))
+            if 100 <= calorie_goal <= 2000:  # Set realistic boundaries for calorie goals
+                return calorie_goal
+            else:
+                print("Calorie goal should be between 100 and 2000. Please try again.")
+        except ValueError:
+            print("Invalid input! Please enter a number.")
+
+# Main script
+def main():
+    while True:
+        # Get validated food input
+        food_item = get_food_input()
+        
+        # Get calorie goal
+        calorie_goal = get_calorie_goal(food_item)
+        
+        # API URL for recipe search
+        url = "https://edamam-recipe-search.p.rapidapi.com/api/recipes/v2"
+
+        # Query parameters for the search
+        querystring = {
+            "q": food_item,  # Use validated user input
+            "type": "public",  # Access public recipes
+            "from": 0,         # Start index for pagination
+            "to": 10           # Fetch 10 recipes
+        }
+
+        # API headers with your RapidAPI key
+        headers = {
+            "x-rapidapi-key": "e04b06695bmshcbe6fdff24bbd23p1c948ejsnea10e8079a1a",
+            "x-rapidapi-host": "edamam-recipe-search.p.rapidapi.com",
+            "Accept-Language": "en"
+        }
+
+        # Fetch data from the API
+        response = requests.get(url, headers=headers, params=querystring)
+
+        if response.status_code == 200:
+            # Parse JSON response
+            data = response.json()
+            recipes = data.get("hits", [])
+            
+            # Filter recipes by calorie goal
+            matching_recipes = [
+                recipe for recipe in recipes
+                if calorie_goal - 100 <= recipe["recipe"]["calories"] <= calorie_goal + 100
+            ]
+            
+            if matching_recipes:
+                print(f"\nRecipes for '{food_item}' within the calorie goal of {calorie_goal} kcal (±100 kcal):\n")
+                for i, recipe in enumerate(matching_recipes[:5], start=1):
+                    recipe_info = recipe["recipe"]
+                    nutrients = recipe_info["totalNutrients"]
+                    
+                    print(f"Recipe {i}: {recipe_info['label']}")
+                    print(f"Source: {recipe_info['source']}")
+                    print(f"URL: {recipe_info['url']}")
+                    print(f"Calories: {recipe_info['calories']:.2f} kcal")
+                    print(f"Protein: {nutrients.get('PROCNT', {}).get('quantity', 'N/A'):.2f} g")
+                    print(f"Fats: {nutrients.get('FAT', {}).get('quantity', 'N/A'):.2f} g")
+                    print(f"Sodium: {nutrients.get('NA', {}).get('quantity', 'N/A'):.2f} mg")
+                    print(f"Sugars: {nutrients.get('SUGAR', {}).get('quantity', 'N/A'):.2f} g")
+                    print("-" * 30)
+                break
+            else:
+                print(f"No recipes found for '{food_item}' within the calorie goal of {calorie_goal} kcal.")
+                print("Please try a more realistic calorie goal for the selected dish.")
+        else:
+            # Print error if the request fails
+            print(f"Error: {response.status_code} - {response.text}")
+
+# Run the script
+if __name__ == "__main__":
+    main()
 
